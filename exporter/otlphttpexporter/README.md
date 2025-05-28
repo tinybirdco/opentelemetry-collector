@@ -39,7 +39,7 @@ The following settings can be optionally configured:
 - `timeout` (default = 30s): HTTP request time limit. For details see https://golang.org/pkg/net/http/#Client
 - `read_buffer_size` (default = 0): ReadBufferSize for HTTP client.
 - `write_buffer_size` (default = 512 * 1024): WriteBufferSize for HTTP client.
-- `encoding` (default = proto): The encoding to use for the messages (valid options: `proto`, `json`)
+- `encoding` (default = proto): The encoding to use for the messages (valid options: `proto`, `json`, `ndjson`)
 
 Example:
 
@@ -65,6 +65,15 @@ exporters:
   otlphttp:
     ...
     encoding: json
+```
+
+To use newline delimited JSON encoding, configure as:
+
+```yaml
+exporters:
+  otlphttp:
+    ...
+    encoding: ndjson
 ```
 
 The full list of settings exposed for this exporter are documented [here](./config.go)
