@@ -54,6 +54,7 @@ const (
 
 	jsonContentType     = "application/json"
 	protobufContentType = "application/x-protobuf"
+	ndjsonContentType   = "application/x-ndjson"
 )
 
 // Create new exporter.
@@ -98,6 +99,11 @@ func (e *baseExporter) pushTraces(ctx context.Context, td ptrace.Traces) error {
 	switch e.config.Encoding {
 	case EncodingJSON:
 		request, err = tr.MarshalJSON()
+	case EncodingNDJSON:
+		request, err = tr.MarshalJSON()
+		if err == nil {
+			request = append(request, '\n')
+		}
 	case EncodingProto:
 		request, err = tr.MarshalProto()
 	default:
@@ -119,6 +125,11 @@ func (e *baseExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) erro
 	switch e.config.Encoding {
 	case EncodingJSON:
 		request, err = tr.MarshalJSON()
+	case EncodingNDJSON:
+		request, err = tr.MarshalJSON()
+		if err == nil {
+			request = append(request, '\n')
+		}
 	case EncodingProto:
 		request, err = tr.MarshalProto()
 	default:
@@ -139,6 +150,11 @@ func (e *baseExporter) pushLogs(ctx context.Context, ld plog.Logs) error {
 	switch e.config.Encoding {
 	case EncodingJSON:
 		request, err = tr.MarshalJSON()
+	case EncodingNDJSON:
+		request, err = tr.MarshalJSON()
+		if err == nil {
+			request = append(request, '\n')
+		}
 	case EncodingProto:
 		request, err = tr.MarshalProto()
 	default:
@@ -160,6 +176,11 @@ func (e *baseExporter) pushProfiles(ctx context.Context, td pprofile.Profiles) e
 	switch e.config.Encoding {
 	case EncodingJSON:
 		request, err = tr.MarshalJSON()
+	case EncodingNDJSON:
+		request, err = tr.MarshalJSON()
+		if err == nil {
+			request = append(request, '\n')
+		}
 	case EncodingProto:
 		request, err = tr.MarshalProto()
 	default:
@@ -183,6 +204,8 @@ func (e *baseExporter) export(ctx context.Context, url string, request []byte, p
 	switch e.config.Encoding {
 	case EncodingJSON:
 		req.Header.Set("Content-Type", jsonContentType)
+	case EncodingNDJSON:
+		req.Header.Set("Content-Type", ndjsonContentType)
 	case EncodingProto:
 		req.Header.Set("Content-Type", protobufContentType)
 	default:
@@ -347,7 +370,7 @@ func (e *baseExporter) tracesPartialSuccessHandler(protoBytes []byte, contentTyp
 		if err != nil {
 			return fmt.Errorf("error parsing protobuf response: %w", err)
 		}
-	case jsonContentType:
+	case jsonContentType, ndjsonContentType:
 		err := exportResponse.UnmarshalJSON(protoBytes)
 		if err != nil {
 			return fmt.Errorf("error parsing json response: %w", err)
@@ -377,7 +400,7 @@ func (e *baseExporter) metricsPartialSuccessHandler(protoBytes []byte, contentTy
 		if err != nil {
 			return fmt.Errorf("error parsing protobuf response: %w", err)
 		}
-	case jsonContentType:
+	case jsonContentType, ndjsonContentType:
 		err := exportResponse.UnmarshalJSON(protoBytes)
 		if err != nil {
 			return fmt.Errorf("error parsing json response: %w", err)
@@ -407,7 +430,7 @@ func (e *baseExporter) logsPartialSuccessHandler(protoBytes []byte, contentType 
 		if err != nil {
 			return fmt.Errorf("error parsing protobuf response: %w", err)
 		}
-	case jsonContentType:
+	case jsonContentType, ndjsonContentType:
 		err := exportResponse.UnmarshalJSON(protoBytes)
 		if err != nil {
 			return fmt.Errorf("error parsing json response: %w", err)
@@ -437,7 +460,7 @@ func (e *baseExporter) profilesPartialSuccessHandler(protoBytes []byte, contentT
 		if err != nil {
 			return fmt.Errorf("error parsing protobuf response: %w", err)
 		}
-	case jsonContentType:
+	case jsonContentType, ndjsonContentType:
 		err := exportResponse.UnmarshalJSON(protoBytes)
 		if err != nil {
 			return fmt.Errorf("error parsing json response: %w", err)

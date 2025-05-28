@@ -18,8 +18,9 @@ import (
 type EncodingType string
 
 const (
-	EncodingProto EncodingType = "proto"
-	EncodingJSON  EncodingType = "json"
+	EncodingProto  EncodingType = "proto"
+	EncodingJSON   EncodingType = "json"
+	EncodingNDJSON EncodingType = "ndjson"
 )
 
 var _ encoding.TextUnmarshaler = (*EncodingType)(nil)
@@ -36,6 +37,8 @@ func (e *EncodingType) UnmarshalText(text []byte) error {
 		*e = EncodingProto
 	case string(EncodingJSON):
 		*e = EncodingJSON
+	case string(EncodingNDJSON):
+		*e = EncodingNDJSON
 	default:
 		return fmt.Errorf("invalid encoding type: %s", str)
 	}

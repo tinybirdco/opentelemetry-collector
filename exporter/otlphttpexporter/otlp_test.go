@@ -581,6 +581,7 @@ func TestPartialResponse_missingHeaderButHasBody(t *testing.T) {
 	}{
 		{contentType: protobufContentType},
 		{contentType: jsonContentType},
+		{contentType: ndjsonContentType},
 	}
 
 	telemetryTypes := []struct {
@@ -621,6 +622,11 @@ func TestPartialResponse_missingHeaderButHasBody(t *testing.T) {
 				switch ct.contentType {
 				case jsonContentType:
 					data, err = serializer.MarshalJSON()
+				case ndjsonContentType:
+					data, err = serializer.MarshalJSON()
+					if err == nil {
+						data = append(data, '\n')
+					}
 				case protobufContentType:
 					data, err = serializer.MarshalProto()
 				default:
@@ -654,6 +660,7 @@ func TestPartialResponse_missingHeaderAndBody(t *testing.T) {
 	}{
 		{contentType: protobufContentType},
 		{contentType: jsonContentType},
+		{contentType: ndjsonContentType},
 	}
 
 	telemetryTypes := []struct {
@@ -722,6 +729,7 @@ func TestPartialSuccess_shortContentLengthHeader(t *testing.T) {
 	}{
 		{contentType: protobufContentType},
 		{contentType: jsonContentType},
+		{contentType: ndjsonContentType},
 	}
 
 	telemetryTypes := []struct {
@@ -762,6 +770,11 @@ func TestPartialSuccess_shortContentLengthHeader(t *testing.T) {
 				switch ct.contentType {
 				case jsonContentType:
 					data, err = serializer.MarshalJSON()
+				case ndjsonContentType:
+					data, err = serializer.MarshalJSON()
+					if err == nil {
+						data = append(data, '\n')
+					}
 				case protobufContentType:
 					data, err = serializer.MarshalProto()
 				default:
@@ -790,6 +803,7 @@ func TestPartialSuccess_longContentLengthHeader(t *testing.T) {
 	}{
 		{contentType: protobufContentType},
 		{contentType: jsonContentType},
+		{contentType: ndjsonContentType},
 	}
 
 	telemetryTypes := []struct {
@@ -846,6 +860,11 @@ func TestPartialSuccess_longContentLengthHeader(t *testing.T) {
 				switch ct.contentType {
 				case jsonContentType:
 					data, err = serializer.MarshalJSON()
+				case ndjsonContentType:
+					data, err = serializer.MarshalJSON()
+					if err == nil {
+						data = append(data, '\n')
+					}
 				case protobufContentType:
 					data, err = serializer.MarshalProto()
 				default:
@@ -1028,6 +1047,11 @@ func TestEncoding(t *testing.T) {
 			name:             "json_encoding",
 			encoding:         EncodingJSON,
 			expectedEncoding: "application/json",
+		},
+		{
+			name:             "ndjson_encoding",
+			encoding:         EncodingNDJSON,
+			expectedEncoding: "application/x-ndjson",
 		},
 	}
 
