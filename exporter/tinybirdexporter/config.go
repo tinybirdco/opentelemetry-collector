@@ -12,9 +12,11 @@ import (
 
 // Config defines configuration for the Tinybird exporter.
 type Config struct {
-	Endpoint   string `mapstructure:"endpoint"`
-	Token      string `mapstructure:"token"`
-	DataSource string `mapstructure:"datasource"`
+	Endpoint          string `mapstructure:"endpoint"`
+	Token             string `mapstructure:"token"`
+	MetricsDataSource string `mapstructure:"metrics_datasource" default:"metrics"`
+	TracesDataSource  string `mapstructure:"traces_datasource" default:"traces"`
+	LogsDatasource    string `mapstructure:"logs_datasource" default:"logs"`
 }
 
 var _ component.Config = (*Config)(nil)
@@ -24,8 +26,14 @@ func (cfg *Config) Validate() error {
 	if cfg.Token == "" {
 		return errMissingToken
 	}
-	if cfg.DataSource == "" {
-		return errMissingDataSource
+	if cfg.MetricsDataSource == "" {
+		cfg.MetricsDataSource = "metrics"
+	}
+	if cfg.TracesDataSource == "" {
+		cfg.TracesDataSource = "traces"
+	}
+	if cfg.LogsDatasource == "" {
+		cfg.LogsDatasource = "logs"
 	}
 	if cfg.Endpoint == "" {
 		return errMissingEndpoint

@@ -29,26 +29,32 @@ func TestNewExporter(t *testing.T) {
 		{
 			name: "valid config",
 			config: &Config{
-				Endpoint:   "http://localhost:8080",
-				Token:      "test-token",
-				DataSource: "test-datasource",
+				Endpoint:          "http://localhost:8080",
+				Token:             "test-token",
+				MetricsDataSource: "metrics_test",
+				TracesDataSource:  "traces_test",
+				LogsDatasource:    "logs_test",
 			},
 			wantErr: false,
 		},
 		{
 			name: "invalid endpoint",
 			config: &Config{
-				Endpoint:   "invalid-url",
-				Token:      "test-token",
-				DataSource: "test-datasource",
+				Endpoint:          "invalid-url",
+				Token:             "test-token",
+				MetricsDataSource: "metrics_test",
+				TracesDataSource:  "traces_test",
+				LogsDatasource:    "logs_test",
 			},
 			wantErr: true,
 		},
 		{
 			name: "missing token",
 			config: &Config{
-				Endpoint:   "http://localhost:8080",
-				DataSource: "test-datasource",
+				Endpoint:          "http://localhost:8080",
+				MetricsDataSource: "metrics_test",
+				TracesDataSource:  "traces_test",
+				LogsDatasource:    "logs_test",
 			},
 			wantErr: true,
 		},
@@ -87,9 +93,11 @@ func TestExportTraces(t *testing.T) {
 	defer server.Close()
 
 	config := &Config{
-		Endpoint:   server.URL,
-		Token:      "test-token",
-		DataSource: "test-datasource",
+		Endpoint:          server.URL,
+		Token:             "test-token",
+		MetricsDataSource: "metrics_test",
+		TracesDataSource:  "traces_test",
+		LogsDatasource:    "logs_test",
 	}
 
 	exp, err := newExporter(config, exportertest.NewNopSettings(component.MustNewType("tinybird")))
@@ -111,9 +119,11 @@ func TestExportMetrics(t *testing.T) {
 	defer server.Close()
 
 	config := &Config{
-		Endpoint:   server.URL,
-		Token:      "test-token",
-		DataSource: "test-datasource",
+		Endpoint:          server.URL,
+		Token:             "test-token",
+		MetricsDataSource: "metrics_test",
+		TracesDataSource:  "traces_test",
+		LogsDatasource:    "logs_test",
 	}
 
 	exp, err := newExporter(config, exportertest.NewNopSettings(component.MustNewType("tinybird")))
@@ -135,9 +145,11 @@ func TestExportLogs(t *testing.T) {
 	defer server.Close()
 
 	config := &Config{
-		Endpoint:   server.URL,
-		Token:      "test-token",
-		DataSource: "test-datasource",
+		Endpoint:          server.URL,
+		Token:             "test-token",
+		MetricsDataSource: "metrics_test",
+		TracesDataSource:  "traces_test",
+		LogsDatasource:    "logs_test",
 	}
 
 	exp, err := newExporter(config, exportertest.NewNopSettings(component.MustNewType("tinybird")))
@@ -198,9 +210,11 @@ func TestExportErrorHandling(t *testing.T) {
 			require.NoError(t, err)
 
 			config := &Config{
-				Endpoint:   server.URL,
-				Token:      "test-token",
-				DataSource: "test-datasource",
+				Endpoint:          server.URL,
+				Token:             "test-token",
+				MetricsDataSource: "metrics_test",
+				TracesDataSource:  "traces_test",
+				LogsDatasource:    "logs_test",
 			}
 
 			exp, err := newExporter(config, exportertest.NewNopSettings(component.MustNewType("tinybird")))

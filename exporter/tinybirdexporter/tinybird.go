@@ -89,7 +89,7 @@ func (e *tinybirdExporter) pushTraces(ctx context.Context, td ptrace.Traces) err
 		}
 	}
 
-	return e.export(ctx, "traces", events)
+	return e.export(ctx, e.config.TracesDataSource, events)
 }
 
 func (e *tinybirdExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
@@ -141,7 +141,7 @@ func (e *tinybirdExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) 
 		}
 	}
 
-	return e.export(ctx, "metrics", events)
+	return e.export(ctx, e.config.MetricsDataSource, events)
 }
 
 func (e *tinybirdExporter) pushLogs(ctx context.Context, ld plog.Logs) error {
@@ -165,7 +165,7 @@ func (e *tinybirdExporter) pushLogs(ctx context.Context, ld plog.Logs) error {
 		}
 	}
 
-	return e.export(ctx, "logs", events)
+	return e.export(ctx, e.config.LogsDatasource, events)
 }
 
 func (e *tinybirdExporter) export(ctx context.Context, dataType string, events []map[string]interface{}) error {
@@ -176,7 +176,6 @@ func (e *tinybirdExporter) export(ctx context.Context, dataType string, events [
 	// Convert events to NDJSON
 	var buf bytes.Buffer
 	for _, event := range events {
-		event["data_source"] = e.config.DataSource
 		event["type"] = dataType
 		event["timestamp"] = time.Now().Format(time.RFC3339Nano)
 

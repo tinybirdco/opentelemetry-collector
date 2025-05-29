@@ -32,9 +32,11 @@ func NewFactory() exporter.Factory {
 
 func createDefaultConfig() component.Config {
 	return &Config{
-		Endpoint:   "https://api.tinybird.co",
-		Token:      "",
-		DataSource: "",
+		Endpoint:          "https://api.tinybird.co",
+		Token:             "",
+		MetricsDataSource: "metrics",
+		TracesDataSource:  "traces",
+		LogsDatasource:    "logs",
 	}
 }
 
