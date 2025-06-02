@@ -27,13 +27,13 @@ func (cfg *Config) Validate() error {
 		return errMissingToken
 	}
 	if cfg.MetricsDataSource == "" {
-		cfg.MetricsDataSource = "metrics"
+		return fmt.Errorf("metrics_datasource must be configured")
 	}
 	if cfg.TracesDataSource == "" {
-		cfg.TracesDataSource = "traces"
+		return fmt.Errorf("traces_datasource must be configured")
 	}
 	if cfg.LogsDatasource == "" {
-		cfg.LogsDatasource = "logs"
+		return fmt.Errorf("logs_datasource must be configured")
 	}
 	if cfg.Endpoint == "" {
 		return errMissingEndpoint
