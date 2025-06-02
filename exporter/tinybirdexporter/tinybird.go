@@ -177,7 +177,6 @@ func (e *tinybirdExporter) export(ctx context.Context, dataType string, dataSour
 	var buf bytes.Buffer
 	for _, event := range events {
 		event["type"] = dataType
-		event["timestamp"] = time.Now().Format(time.RFC3339Nano)
 
 		jsonData, err := json.Marshal(event)
 		if err != nil {
