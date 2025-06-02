@@ -89,7 +89,7 @@ func (e *tinybirdExporter) pushTraces(ctx context.Context, td ptrace.Traces) err
 		}
 	}
 
-	return e.export(ctx, e.config.TracesDataSource, events)
+	return e.export(ctx, "traces", e.config.TracesDataSource, events)
 }
 
 func (e *tinybirdExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) error {
@@ -141,7 +141,7 @@ func (e *tinybirdExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) 
 		}
 	}
 
-	return e.export(ctx, e.config.MetricsDataSource, events)
+	return e.export(ctx, "metrics", e.config.MetricsDataSource, events)
 }
 
 func (e *tinybirdExporter) pushLogs(ctx context.Context, ld plog.Logs) error {
@@ -165,10 +165,10 @@ func (e *tinybirdExporter) pushLogs(ctx context.Context, ld plog.Logs) error {
 		}
 	}
 
-	return e.export(ctx, e.config.LogsDatasource, events)
+	return e.export(ctx, "logs", e.config.LogsDatasource, events)
 }
 
-func (e *tinybirdExporter) export(ctx context.Context, dataType string, events []map[string]interface{}) error {
+func (e *tinybirdExporter) export(ctx context.Context, dataType string, dataSource string, events []map[string]interface{}) error {
 	if len(events) == 0 {
 		return nil
 	}
@@ -188,7 +188,7 @@ func (e *tinybirdExporter) export(ctx context.Context, dataType string, events [
 	}
 
 	// Create request
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, e.config.Endpoint+"/v0/events?name="+dataType, &buf)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, e.config.Endpoint+"/v0/events?name="+dataSource, &buf)
 	if err != nil {
 		return consumererror.NewPermanent(err)
 	}
