@@ -171,6 +171,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiv
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.127.0/go.mod h1:+KTLU1m1+GmxiSsf6XEJ3XGeEhfd71WVNdyIqw38Opg=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver v0.127.0 h1:rZf0cYnQLIk6mTqnhKmianYVS0CIltIuQfhbks9M22g=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver v0.127.0/go.mod h1:O92ETDip9UQ4Zx8DuvpHK7Y/aIVSEJ4rC+SLYJ5d24o=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/journaldreceiver v0.127.0 h1:3ium/wKdvwp+FLOmZ5urczEHdRuVJ00FAt2eHwfLBH8=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/journaldreceiver v0.127.0/go.mod h1:xT24NVHskyhg5nPIY+IjzCiQ7CgyxDiL5Q8NJorT6As=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=
 github.com/opencontainers/go-digest v1.0.0/go.mod h1:0JzlMkj0TRzQZfJkVvzbP0HBR3IKzErnv2BNG4W4MAM=
 github.com/opencontainers/image-spec v1.1.1 h1:y0fUlFfIZhPF1W537XOLg0/fcx6zcHCJwooC2xJA040=

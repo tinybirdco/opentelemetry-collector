@@ -23,6 +23,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/ptrace"
+	conventions "go.opentelemetry.io/otel/semconv/v1.27.0"
 )
 
 const (
@@ -42,16 +43,26 @@ type baseEvent struct {
 	ScopeName          string         `json:"scope_name"`
 	ScopeVersion       string         `json:"scope_version"`
 	ScopeAttributes    map[string]any `json:"scope_attributes"`
+	ResourceSchemaUrl  string         `json:"resource_schema_url,omitempty"`
+	ScopeSchemaUrl     string         `json:"scope_schema_url,omitempty"`
+	ServiceName        string         `json:"service_name,omitempty"`
 	Attributes         map[string]any `json:"attributes"`
 }
 
-func newBaseEvent(dataType string, resource pcommon.Resource, scope pcommon.InstrumentationScope, attributes pcommon.Map) baseEvent {
+func newBaseEvent(dataType string, resource pcommon.Resource, scope pcommon.InstrumentationScope, attributes pcommon.Map, resourceSchemaUrl string, scopeSchemaUrl string) baseEvent {
+	serviceName := ""
+	if v, ok := resource.Attributes().Get(string(conventions.ServiceNameKey)); ok {
+		serviceName = v.Str()
+	}
 	return baseEvent{
 		Type:               dataType,
 		ResourceAttributes: resource.Attributes().AsRaw(),
 		ScopeName:          scope.Name(),
 		ScopeVersion:       scope.Version(),
 		ScopeAttributes:    scope.Attributes().AsRaw(),
+		ResourceSchemaUrl:  resourceSchemaUrl,
+		ScopeSchemaUrl:     scopeSchemaUrl,
+		ServiceName:        serviceName,
 		Attributes:         attributes.AsRaw(),
 	}
 }
@@ -69,6 +80,7 @@ type traceEvent struct {
 	StatusMessage string `json:"status_message"`
 	Events        int    `json:"events"`
 	Links         int    `json:"links"`
+	TraceFlags    uint32 `json:"trace_flags,omitempty"`
 }
 
 func (traceEvent) event() {}
@@ -89,11 +101,13 @@ func (metricEvent) event() {}
 
 type logEvent struct {
 	baseEvent
-	Timestamp string `json:"timestamp"`
-	Severity  string `json:"severity"`
-	Body      string `json:"body"`
-	TraceID   string `json:"trace_id"`
-	SpanID    string `json:"span_id"`
+	Timestamp      string `json:"timestamp"`
+	SeverityText   string `json:"severity_text,omitempty"`
+	SeverityNumber int    `json:"severity_number,omitempty"`
+	Body           string `json:"body"`
+	TraceID        string `json:"trace_id"`
+	SpanID         string `json:"span_id"`
+	TraceFlags     uint32 `json:"trace_flags,omitempty"`
 }
 
 func (logEvent) event() {}
@@ -135,12 +149,17 @@ func (e *tinybirdExporter) pushTraces(ctx context.Context, td ptrace.Traces) err
 	events := make([]Event, 0, td.SpanCount())
 	for i := 0; i < td.ResourceSpans().Len(); i++ {
 		rs := td.ResourceSpans().At(i)
+		resource := rs.Resource()
+		schemaUrl := rs.SchemaUrl()
 		for j := 0; j < rs.ScopeSpans().Len(); j++ {
 			ss := rs.ScopeSpans().At(j)
+			scope := ss.Scope()
+			scopeSchemaUrl := ss.SchemaUrl()
 			for k := 0; k < ss.Spans().Len(); k++ {
 				span := ss.Spans().At(k)
+				attributes := span.Attributes()
 				event := traceEvent{
-					baseEvent:     newBaseEvent("traces", rs.Resource(), ss.Scope(), span.Attributes()),
+					baseEvent:     newBaseEvent("traces", resource, scope, attributes, schemaUrl, scopeSchemaUrl),
 					TraceID:       span.TraceID().String(),
 					SpanID:        span.SpanID().String(),
 					ParentSpanID:  span.ParentSpanID().String(),
@@ -152,6 +171,7 @@ func (e *tinybirdExporter) pushTraces(ctx context.Context, td ptrace.Traces) err
 					StatusMessage: span.Status().Message(),
 					Events:        span.Events().Len(),
 					Links:         span.Links().Len(),
+					TraceFlags:    span.Flags() & 0xff,
 				}
 				events = append(events, event)
 			}
@@ -165,8 +185,12 @@ func (e *tinybirdExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) 
 	events := make([]Event, 0, md.MetricCount())
 	for i := 0; i < md.ResourceMetrics().Len(); i++ {
 		rm := md.ResourceMetrics().At(i)
+		resource := rm.Resource()
+		schemaUrl := rm.SchemaUrl()
 		for j := 0; j < rm.ScopeMetrics().Len(); j++ {
 			sm := rm.ScopeMetrics().At(j)
+			scope := sm.Scope()
+			scopeSchemaUrl := sm.SchemaUrl()
 			for k := 0; k < sm.Metrics().Len(); k++ {
 				metric := sm.Metrics().At(k)
 
@@ -175,8 +199,9 @@ func (e *tinybirdExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) 
 					dps := metric.Gauge().DataPoints()
 					for l := 0; l < dps.Len(); l++ {
 						dp := dps.At(l)
+						attributes := dp.Attributes()
 						event := metricEvent{
-							baseEvent:   newBaseEvent("metrics", rm.Resource(), sm.Scope(), dp.Attributes()),
+							baseEvent:   newBaseEvent("metrics", resource, scope, attributes, schemaUrl, scopeSchemaUrl),
 							Name:        metric.Name(),
 							Description: metric.Description(),
 							Unit:        metric.Unit(),
@@ -190,8 +215,9 @@ func (e *tinybirdExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) 
 					dps := metric.Sum().DataPoints()
 					for l := 0; l < dps.Len(); l++ {
 						dp := dps.At(l)
+						attributes := dp.Attributes()
 						event := metricEvent{
-							baseEvent:   newBaseEvent("metrics", rm.Resource(), sm.Scope(), dp.Attributes()),
+							baseEvent:   newBaseEvent("metrics", resource, scope, attributes, schemaUrl, scopeSchemaUrl),
 							Name:        metric.Name(),
 							Description: metric.Description(),
 							Unit:        metric.Unit(),
@@ -205,8 +231,9 @@ func (e *tinybirdExporter) pushMetrics(ctx context.Context, md pmetric.Metrics) 
 					dps := metric.Histogram().DataPoints()
 					for l := 0; l < dps.Len(); l++ {
 						dp := dps.At(l)
+						attributes := dp.Attributes()
 						event := metricEvent{
-							baseEvent:   newBaseEvent("metrics", rm.Resource(), sm.Scope(), dp.Attributes()),
+							baseEvent:   newBaseEvent("metrics", resource, scope, attributes, schemaUrl, scopeSchemaUrl),
 							Name:        metric.Name(),
 							Description: metric.Description(),
 							Unit:        metric.Unit(),
@@ -229,17 +256,24 @@ func (e *tinybirdExporter) pushLogs(ctx context.Context, ld plog.Logs) error {
 	events := make([]Event, 0, ld.LogRecordCount())
 	for i := 0; i < ld.ResourceLogs().Len(); i++ {
 		rl := ld.ResourceLogs().At(i)
+		resource := rl.Resource()
+		schemaUrl := rl.SchemaUrl()
 		for j := 0; j < rl.ScopeLogs().Len(); j++ {
 			sl := rl.ScopeLogs().At(j)
+			scope := sl.Scope()
+			scopeSchemaUrl := sl.SchemaUrl()
 			for k := 0; k < sl.LogRecords().Len(); k++ {
 				log := sl.LogRecords().At(k)
+				attributes := log.Attributes()
 				event := logEvent{
-					baseEvent: newBaseEvent("logs", rl.Resource(), sl.Scope(), log.Attributes()),
-					Timestamp: log.Timestamp().AsTime().Format(time.RFC3339Nano),
-					Severity:  log.SeverityText(),
-					Body:      log.Body().AsString(),
-					TraceID:   log.TraceID().String(),
-					SpanID:    log.SpanID().String(),
+					baseEvent:      newBaseEvent("logs", resource, scope, attributes, schemaUrl, scopeSchemaUrl),
+					Timestamp:      log.Timestamp().AsTime().Format(time.RFC3339Nano),
+					SeverityText:   log.SeverityText(),
+					SeverityNumber: int(log.SeverityNumber()),
+					Body:           log.Body().AsString(),
+					TraceID:        log.TraceID().String(),
+					SpanID:         log.SpanID().String(),
+					TraceFlags:     uint32(log.Flags()) & 0xff,
 				}
 				events = append(events, event)
 			}

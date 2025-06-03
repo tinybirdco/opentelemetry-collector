@@ -10,6 +10,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor v0.127.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.127.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver v0.127.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/journaldreceiver v0.127.0
 	go.opentelemetry.io/collector/component v1.33.0
 	go.opentelemetry.io/collector/confmap v1.33.0
 	go.opentelemetry.io/collector/confmap/provider/envprovider v1.33.0
